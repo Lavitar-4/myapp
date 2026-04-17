@@ -3,28 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro Billing v17 - Professional Build</title>
+    <title>Pro Billing v17 - Ultimate</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #0f172a; height: 100vh; overflow: hidden; color: white; }
+        
         #invoice-a4 {
             width: 210mm; height: 297mm; padding: 10mm; background: white;
-            margin: 0 auto; color: black; border: 1.5px solid #000; display: flex; flex-direction: column;
+            margin: 0 auto; display: flex; flex-direction: column; color: black; 
+            border: 1px solid #000; position: relative;
         }
+
         .bill-table { width: 100%; border-collapse: collapse; border: 1.5px solid #000; }
-        .bill-table th, .bill-table td { border: 1px solid #000; padding: 4px 6px; font-size: 11px; }
-        .bill-table th { background-color: #f8fafc; font-weight: 800; text-transform: uppercase; }
+        .bill-table th, .bill-table td { border: 1px solid #000; padding: 4px; font-size: 11px; }
+        .bill-table th { background-color: #f1f5f9; font-weight: 800; }
+
         .suggest-box {
             position: absolute; width: 100%; background: #1e293b; border: 1px solid #3b82f6;
             border-radius: 4px; z-index: 100; max-height: 200px; overflow-y: auto; display: none;
         }
         .suggest-box div { padding: 10px; cursor: pointer; border-bottom: 1px solid #334155; font-size: 12px; color: white; }
+        
         @media print {
             .no-print { display: none !important; }
             body { background: white; overflow: visible; }
-            #invoice-a4 { box-shadow: none; margin: 0; width: 100%; border: 1.5px solid #000; }
+            #invoice-a4 { box-shadow: none; margin: 0; width: 210mm; height: 297mm; border: 1px solid #000; padding: 8mm; }
+            * { -webkit-print-color-adjust: exact; }
         }
     </style>
 </head>
@@ -32,88 +38,94 @@
 
     <aside class="w-[480px] h-screen bg-slate-900 flex flex-col no-print border-r border-slate-700">
         <div class="p-4 bg-slate-800 flex justify-between items-center">
-            <h2 class="font-black text-blue-400 italic uppercase flex items-center gap-2"><i data-lucide="shield-check"></i> PRO BILL v17</h2>
-            <select id="shop-selector" onchange="switchShop()" class="bg-slate-700 p-1 rounded text-[10px] border border-blue-500 text-white outline-none"></select>
+            <h2 class="font-black text-blue-400 flex items-center gap-2 italic uppercase"><i data-lucide="shield-check"></i> PRO BILL v17</h2>
+            <select id="shop-selector" onchange="switchShop()" class="bg-slate-700 p-1 rounded text-[10px] border border-blue-500 text-white outline-none w-32"></select>
         </div>
 
         <div class="flex text-[10px] font-bold border-b border-slate-700">
             <button onclick="showTab('billing')" id="t-billing" class="flex-1 py-3 bg-slate-800 border-b-2 border-blue-500">BILLING</button>
-            <button onclick="showTab('history')" id="t-history" class="flex-1 py-3 border-b-2 border-transparent">HISTORY</button>
-            <button onclick="showTab('master')" id="t-master" class="flex-1 py-3 border-b-2 border-transparent">MASTER</button>
-            <button onclick="showTab('settings')" id="t-settings" class="flex-1 py-3 border-b-2 border-transparent text-yellow-500">SETUP/EDIT</button>
+            <button onclick="showTab('history')" id="t-history" class="flex-1 py-3">HISTORY</button>
+            <button onclick="showTab('master')" id="t-master" class="flex-1 py-3">MASTER</button>
+            <button onclick="showTab('settings')" id="t-settings" class="flex-1 py-3 text-yellow-500">SETUP</button>
         </div>
 
         <div class="flex-1 overflow-y-auto p-4 space-y-4">
-            <div id="tab-billing" class="space-y-4">
-                <div class="bg-slate-800/50 p-3 rounded-xl border border-slate-700 space-y-3">
+            <div id="tab-billing" class="space-y-3">
+                <div class="bg-slate-800/50 p-3 rounded-xl border border-slate-700 space-y-2">
                     <div class="grid grid-cols-2 gap-2">
-                        <input type="text" id="cust-name" oninput="updateBillPreview()" placeholder="Customer Name" class="col-span-2 w-full p-2 rounded bg-slate-800 border border-slate-600 text-sm">
-                        <input type="number" id="cust-mob" oninput="updateBillPreview()" placeholder="Mobile Number" class="w-full p-2 rounded bg-slate-800 border border-slate-600 text-sm">
-                        <input type="date" id="bill-date-input" oninput="updateBillPreview()" class="w-full p-2 rounded bg-slate-800 border border-slate-600 text-blue-400 font-bold">
-                        <input type="text" id="cust-addr" oninput="updateBillPreview()" placeholder="Address" class="col-span-2 w-full p-2 rounded bg-slate-800 border border-slate-600 text-sm">
-                        <textarea id="bill-note-input" oninput="updateBillPreview()" placeholder="Note/Comment (Optional)" class="col-span-2 w-full p-2 rounded bg-slate-800 border border-slate-600 text-xs h-12"></textarea>
+                        <input type="date" id="bill-date-input" oninput="updateBillPreview()" class="p-2 rounded bg-slate-800 border border-slate-600 text-blue-400 font-bold text-sm">
+                        <select id="gst-mode" onchange="updateBillPreview()" class="p-2 rounded bg-blue-900 border border-blue-500 text-xs font-bold">
+                            <option value="INTRA">Intra-State (CGST+SGST)</option>
+                            <option value="INTER">Inter-State (IGST)</option>
+                        </select>
+                        <input type="text" id="cust-name" oninput="updateBillPreview()" placeholder="Customer Name" class="col-span-2 p-2 rounded bg-slate-800 border border-slate-600 text-sm">
+                        <input type="number" id="cust-mob" oninput="updateBillPreview()" placeholder="Mobile Number" class="p-2 rounded bg-slate-800 border border-slate-600 text-sm">
+                        <input type="text" id="cust-addr" oninput="updateBillPreview()" placeholder="Customer Address" class="p-2 rounded bg-slate-800 border border-slate-600 text-sm">
+                        <textarea id="bill-note-input" oninput="updateBillPreview()" placeholder="Comment/Note" class="col-span-2 p-2 rounded bg-slate-800 border border-slate-600 text-xs h-10"></textarea>
                     </div>
                 </div>
 
-                <div class="bg-slate-800 p-3 rounded-xl border border-blue-500/30 space-y-3">
+                <div class="bg-slate-800 p-3 rounded-xl border border-blue-500/30 space-y-2">
                     <div class="relative">
-                        <input type="text" id="item-name" oninput="handleSmartSearch()" placeholder="Search Product..." class="w-full p-2 rounded bg-slate-700 text-sm font-bold outline-none">
+                        <input type="text" id="item-name" oninput="handleSmartSearch()" placeholder="Search Item..." class="w-full p-2 rounded bg-slate-700 text-sm font-bold outline-none">
                         <div id="suggest-box" class="suggest-box"></div>
                     </div>
-                    <div class="grid grid-cols-2 gap-2">
+                    <div class="grid grid-cols-4 gap-2">
                         <input type="text" id="item-hsn" placeholder="HSN" class="p-2 rounded bg-slate-700 text-xs">
                         <input type="text" id="item-unit" placeholder="Unit" class="p-2 rounded bg-slate-700 text-xs">
-                        <input type="number" id="item-qty" placeholder="Qty" class="p-2 rounded bg-slate-700 font-bold">
-                        <input type="number" id="item-rate" placeholder="Rate" class="p-2 rounded bg-slate-700 font-bold">
-                        <select id="item-gst" class="col-span-2 p-2 rounded bg-slate-700 text-sm">
-                            <option value="0">0% GST</option><option value="5">5% GST</option><option value="12">12% GST</option><option value="18" selected>18% GST</option><option value="28">28% GST</option>
-                        </select>
+                        <input type="number" id="item-qty" placeholder="Qty" class="p-2 rounded bg-slate-700 text-sm font-bold">
+                        <input type="number" id="item-rate" placeholder="Rate" class="p-2 rounded bg-slate-700 text-sm font-bold">
                     </div>
-                    <button onclick="addItem()" class="w-full bg-blue-600 py-3 rounded-lg font-black uppercase text-xs">Add to Bill</button>
+                    <select id="item-gst" class="w-full p-2 rounded bg-slate-700 text-sm">
+                        <option value="0">0% GST</option><option value="5">5% GST</option><option value="12">12% GST</option>
+                        <option value="18" selected>18% GST</option><option value="28">28% GST</option>
+                    </select>
+                    <button onclick="addItem()" class="w-full bg-blue-600 py-2 rounded-lg font-black uppercase text-xs">Add Product</button>
                 </div>
             </div>
 
-            <div id="tab-history" class="hidden space-y-3">
-                <input type="text" id="hist-search" oninput="renderHistory()" placeholder="Search by Name, Mob or Inv#" class="w-full p-2 rounded bg-slate-800 border border-blue-500 text-sm">
+            <div id="tab-history" class="hidden space-y-4">
+                <input type="text" id="history-search" oninput="renderHistory()" placeholder="Search by Inv No, Name or Mobile..." class="w-full p-3 rounded-lg bg-slate-800 border border-blue-500 text-sm">
                 <div id="history-items" class="space-y-2"></div>
             </div>
 
-            <div id="tab-master" class="hidden space-y-4">
+            <div id="tab-master" class="hidden space-y-3">
                 <div class="bg-slate-800 p-3 rounded border border-emerald-500/50 space-y-2">
-                    <input type="text" id="m-name" placeholder="New Product Name" class="w-full p-2 rounded bg-slate-700 uppercase">
+                    <input type="text" id="m-name" placeholder="Item Name" class="w-full p-2 rounded bg-slate-700 uppercase">
                     <div class="grid grid-cols-2 gap-2">
                         <input type="text" id="m-hsn" placeholder="HSN" class="p-2 rounded bg-slate-700">
                         <input type="text" id="m-unit" placeholder="Unit" class="p-2 rounded bg-slate-700">
                     </div>
-                    <button onclick="saveToMaster()" class="w-full bg-emerald-600 py-2 rounded font-bold text-xs uppercase">Save Product</button>
+                    <button onclick="saveToMaster()" class="w-full bg-emerald-600 py-2 rounded font-bold text-xs">SAVE TO MASTER</button>
                 </div>
                 <div id="master-list-items" class="space-y-1"></div>
             </div>
 
-            <div id="tab-settings" class="hidden space-y-4">
+            <div id="tab-settings" class="hidden space-y-3">
                 <div class="bg-slate-800 p-3 rounded border border-yellow-500/50 space-y-2">
                     <input type="hidden" id="edit-shop-id">
-                    <label class="text-[10px] text-yellow-500 font-bold uppercase">Shop Logo</label>
-                    <input type="file" onchange="previewLogo(this)" class="w-full text-xs text-slate-400">
-                    <input type="text" id="s-name" placeholder="Shop Name" class="w-full p-2 rounded bg-slate-700">
-                    <input type="text" id="s-gst" placeholder="Shop GSTIN" class="w-full p-2 rounded bg-slate-700">
-                    <input type="text" id="s-mob" placeholder="Shop Mobile" class="w-full p-2 rounded bg-slate-700">
-                    <textarea id="s-addr" placeholder="Shop Address" class="w-full p-2 rounded bg-slate-700 text-xs h-12"></textarea>
-                    <div class="grid grid-cols-2 gap-2">
-                        <input type="text" id="s-acc" placeholder="Bank Acc No (Opt)" class="p-2 rounded bg-slate-700 text-xs">
-                        <input type="text" id="s-ifsc" placeholder="IFSC Code (Opt)" class="p-2 rounded bg-slate-700 text-xs">
+                    <div class="flex items-center gap-2">
+                        <input type="file" id="s-logo" onchange="previewLogo(this)" class="text-[10px] flex-1">
+                        <button onclick="clearLogo()" class="text-[9px] bg-red-900 px-2 py-1 rounded">Clear Logo</button>
                     </div>
-                    <button onclick="saveShop()" id="shop-save-btn" class="w-full bg-yellow-600 py-2 rounded font-bold uppercase text-xs">Save Shop Details</button>
+                    <input type="text" id="s-name" placeholder="Shop Name" class="w-full p-2 rounded bg-slate-700 text-sm">
+                    <input type="text" id="s-gst" placeholder="Shop GSTIN" class="w-full p-2 rounded bg-slate-700 text-sm">
+                    <input type="text" id="s-mob" placeholder="Shop Mobile" class="w-full p-2 rounded bg-slate-700 text-sm">
+                    <textarea id="s-addr" placeholder="Shop Address" class="w-full p-2 rounded bg-slate-700 text-xs h-12"></textarea>
+                    <p class="text-[9px] text-yellow-500 font-bold uppercase">Optional Bank Details:</p>
+                    <input type="text" id="s-acc" placeholder="Account Number (Optional)" class="w-full p-2 rounded bg-slate-700 text-sm">
+                    <input type="text" id="s-ifsc" placeholder="IFSC Code (Optional)" class="w-full p-2 rounded bg-slate-700 text-sm">
+                    <button onclick="saveShop()" class="w-full bg-yellow-600 py-2 rounded font-bold uppercase text-xs">Save / Update Shop</button>
                 </div>
                 <div id="shop-list" class="space-y-2"></div>
             </div>
         </div>
 
         <div class="p-4 bg-slate-800 space-y-2 border-t border-slate-700">
-            <button onclick="finalSaveBill()" class="w-full bg-emerald-600 py-3 rounded-lg font-black text-xs uppercase">Save Bill Data & Reset</button>
+            <button onclick="finalSaveBill()" class="w-full bg-emerald-600 py-3 rounded-lg font-black text-xs uppercase">Save Bill & Clear</button>
             <div class="grid grid-cols-2 gap-2">
-                <button onclick="generatePDF()" class="bg-red-600 py-3 rounded-lg font-black text-[10px] uppercase">PDF</button>
-                <button onclick="window.print()" class="bg-blue-600 py-3 rounded-lg font-black text-[10px] uppercase">Print</button>
+                <button onclick="generatePDF()" class="bg-red-600 py-3 rounded-lg font-black text-[10px]">PDF DOWNLOAD</button>
+                <button onclick="window.print()" class="bg-blue-600 py-3 rounded-lg font-black text-[10px]">PRINT BILL</button>
             </div>
         </div>
     </aside>
@@ -122,33 +134,34 @@
         <div id="invoice-a4">
             <div class="flex justify-between text-[10px] font-black uppercase mb-1">
                 <div id="p-shop-gst">GSTIN: --</div>
-                <div class="border-b-2 border-black tracking-widest">TAX INVOICE</div>
+                <div class="border-b-2 border-black tracking-widest px-4">TAX INVOICE</div>
                 <div id="p-shop-mob">MOB: --</div>
             </div>
 
-            <div class="flex items-center justify-center gap-4 my-2 text-center pb-2">
-                <img id="p-logo" src="" class="h-16 object-contain hidden">
-                <div class="flex-1 pr-10">
-                    <h1 id="p-shop-name" class="text-4xl font-black text-blue-900 uppercase tracking-tighter leading-none"></h1>
-                    <p id="p-shop-addr" class="text-[11px] font-bold text-gray-600 mt-1"></p>
-                    <p id="p-shop-bank" class="text-[9px] font-black text-blue-800 uppercase"></p>
+            <div class="flex items-center justify-center gap-6 my-2 border-b-2 border-black pb-3">
+                <img id="p-logo" src="" class="h-20 object-contain hidden">
+                <div class="text-center flex-1">
+                    <h1 id="p-shop-name" class="text-4xl font-black text-blue-900 uppercase leading-none tracking-tighter"></h1>
+                    <p id="p-shop-addr" class="text-[11px] font-bold text-gray-600 mt-1 uppercase"></p>
+                    <p id="p-shop-bank" class="text-[10px] font-black text-blue-800 italic"></p>
                 </div>
             </div>
 
-            <div class="grid grid-cols-3 border-y-2 border-black py-2 mb-2">
-                <div class="col-span-2 border border-black p-2 rounded-md bg-gray-50 mr-4">
-                    <p class="text-[10px] uppercase leading-relaxed"><b>Name :</b> <span id="p-cust-name" class="font-black"></span></p>
-                    <p class="text-[10px] uppercase leading-relaxed"><b>Mobile :</b> <span id="p-cust-mob" class="font-black"></span></p>
-                    <p class="text-[10px] uppercase leading-relaxed"><b>Address :</b> <span id="p-cust-addr" class="font-bold text-gray-600"></span></p>
+            <div class="grid grid-cols-3 gap-2 my-2 items-stretch">
+                <div class="col-span-2 border-2 border-black p-2 rounded-lg bg-slate-50 flex flex-col justify-center">
+                    <p class="text-[9px] font-black uppercase text-gray-400 mb-1 underline">Billing Details:</p>
+                    <p class="text-[12px] uppercase"><b>Name:</b> <span id="p-cust-name" class="font-black"></span></p>
+                    <p class="text-[12px] uppercase"><b>Mobile:</b> <span id="p-cust-mob" class="font-black"></span></p>
+                    <p class="text-[11px] uppercase"><b>Address:</b> <span id="p-cust-addr" class="font-medium"></span></p>
                 </div>
-                <div class="text-right flex flex-col justify-center">
-                    <div class="mb-2">
-                        <p class="text-[9px] font-bold uppercase text-gray-400">Invoice No.</p>
-                        <p id="p-inv-no" class="font-black text-xl leading-none"></p>
+                <div class="col-span-1 text-right flex flex-col justify-center border-l border-black pl-2">
+                    <div class="mb-4">
+                        <p class="text-[10px] font-bold uppercase">Invoice No:</p>
+                        <p id="p-inv-no" class="text-xl font-black text-blue-900"></p>
                     </div>
                     <div>
-                        <p class="text-[9px] font-bold uppercase text-gray-400">Billing Date</p>
-                        <p id="p-date" class="font-black text-sm"></p>
+                        <p class="text-[10px] font-bold uppercase">Date:</p>
+                        <p id="p-date" class="text-xs font-black"></p>
                     </div>
                 </div>
             </div>
@@ -163,8 +176,9 @@
             </div>
 
             <div class="mt-2">
-                <div class="mb-2 p-2 border-l-4 border-blue-900 bg-slate-50">
-                    <p id="p-bill-note" class="text-[10px] italic font-medium"></p>
+                <div class="mb-2 p-2 border-l-4 border-blue-900 bg-slate-100">
+                    <p class="text-[8px] font-black text-blue-900 uppercase">Comment / Terms:</p>
+                    <p id="p-bill-note" class="text-[10px] italic font-semibold"></p>
                 </div>
 
                 <div class="grid grid-cols-2 border-t-2 border-black pt-2">
@@ -172,15 +186,15 @@
                         <p class="text-[9px] font-black uppercase">Amount in Words:</p>
                         <p id="p-words" class="text-[11px] italic font-black text-blue-900 leading-tight"></p>
                         <div class="mt-2 border border-black p-1 w-52 bg-slate-50">
-                            <table class="w-full text-[9px]"><tbody id="tax-breakup-body"></tbody></table>
+                            <table class="w-full text-[10px]"><tbody id="tax-breakup-body"></tbody></table>
                         </div>
                     </div>
                     <div class="text-right">
                         <div class="text-[11px] font-bold space-y-0.5">
                             <div class="flex justify-between px-2"><span>Taxable:</span> <span id="p-taxable-val">0.00</span></div>
-                            <div class="flex justify-between px-2 border-b border-black pb-1"><span>Tax:</span> <span id="p-tax-val">0.00</span></div>
+                            <div class="flex justify-between px-2 border-b border-black pb-1"><span>Total Tax:</span> <span id="p-tax-val">0.00</span></div>
                         </div>
-                        <div class="text-2xl font-black mt-1 bg-gray-100 p-1 border border-black">TOTAL: ₹ <span id="p-grand">0.00</span></div>
+                        <div class="text-2xl font-black mt-2 bg-gray-100 p-1 border border-black">TOTAL: <span id="p-grand">₹ 0.00</span></div>
                         <div class="mt-8">
                             <p id="p-footer-shop" class="text-[10px] font-black uppercase mb-10"></p>
                             <div class="border-t border-black inline-block px-10 pt-1 text-[9px] font-bold uppercase">Authorised Signatory</div>
@@ -193,7 +207,7 @@
 
     <script>
         let app = JSON.parse(localStorage.getItem('pb_v17_db')) || {
-            shops: [{ id: 1, name: "Shop Name", gst: "", mob: "", addr: "", nextInv: 101, logo: "", acc: "", ifsc: "" }],
+            shops: [{ id: 1, name: "Shop Name", gst: "GSTIN", mob: "000", addr: "Address", nextInv: 101, logo: "", acc: "", ifsc: "" }],
             activeShopId: 1, master: [], history: []
         };
         let currentItems = [];
@@ -202,7 +216,6 @@
             document.getElementById('bill-date-input').value = new Date().toISOString().split('T')[0];
             renderShopSelect();
             updateBillPreview();
-            renderShopList();
             lucide.createIcons();
         };
 
@@ -213,59 +226,40 @@
             });
             document.getElementById('tab-'+t).classList.remove('hidden');
             document.getElementById('t-'+t).classList.add('bg-slate-800', 'border-blue-500');
-            if(t === 'master') renderMaster();
             if(t === 'history') renderHistory();
+            if(t === 'master') renderMaster();
             if(t === 'settings') renderShopList();
         }
 
         function saveData() { localStorage.setItem('pb_v17_db', JSON.stringify(app)); }
 
-        // --- SHOP MANAGEMENT ---
+        // --- SHOP SYSTEM ---
         function previewLogo(input) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
-                reader.onload = (e) => app.tempLogo = e.target.result;
+                reader.onload = (e) => { app.tempLogo = e.target.result; };
                 reader.readAsDataURL(input.files[0]);
             }
         }
+        function clearLogo() { delete app.tempLogo; const shop = app.shops.find(s => s.id == app.activeShopId); shop.logo = ""; saveData(); updateBillPreview(); }
 
         function saveShop() {
             const id = document.getElementById('edit-shop-id').value;
             const name = document.getElementById('s-name').value;
-            if(!name) return alert("Shop Name Required!");
-
-            const shopData = {
-                id: id ? parseInt(id) : Date.now(),
-                name: name,
-                gst: document.getElementById('s-gst').value,
-                mob: document.getElementById('s-mob').value,
-                addr: document.getElementById('s-addr').value,
-                acc: document.getElementById('s-acc').value,
-                ifsc: document.getElementById('s-ifsc').value,
-                nextInv: id ? app.shops.find(s=>s.id==id).nextInv : 1,
-                logo: app.tempLogo || (id ? app.shops.find(s=>s.id==id).logo : "")
-            };
+            if(!name) return alert("Shop Name required");
 
             if(id) {
-                const idx = app.shops.findIndex(s => s.id == id);
-                app.shops[idx] = shopData;
+                const s = app.shops.find(x => x.id == id);
+                s.name = name; s.gst = document.getElementById('s-gst').value; s.mob = document.getElementById('s-mob').value;
+                s.addr = document.getElementById('s-addr').value; s.acc = document.getElementById('s-acc').value; s.ifsc = document.getElementById('s-ifsc').value;
+                if(app.tempLogo) s.logo = app.tempLogo;
             } else {
-                app.shops.push(shopData);
-                app.activeShopId = shopData.id;
+                app.shops.push({
+                    id: Date.now(), name, gst: document.getElementById('s-gst').value, mob: document.getElementById('s-mob').value,
+                    addr: document.getElementById('s-addr').value, nextInv: 1, logo: app.tempLogo || "", acc: document.getElementById('s-acc').value, ifsc: document.getElementById('s-ifsc').value
+                });
             }
-            saveData(); location.reload();
-        }
-
-        function editShop(id) {
-            const s = app.shops.find(x => x.id == id);
-            document.getElementById('edit-shop-id').value = s.id;
-            document.getElementById('s-name').value = s.name;
-            document.getElementById('s-gst').value = s.gst;
-            document.getElementById('s-mob').value = s.mob;
-            document.getElementById('s-addr').value = s.addr;
-            document.getElementById('s-acc').value = s.acc;
-            document.getElementById('s-ifsc').value = s.ifsc;
-            document.getElementById('shop-save-btn').innerText = "Update Shop";
+            delete app.tempLogo; saveData(); location.reload();
         }
 
         function renderShopList() {
@@ -280,94 +274,115 @@
             `).join('');
         }
 
-        function switchShop() { app.activeShopId = document.getElementById('shop-selector').value; saveData(); location.reload(); }
+        function editShop(id) {
+            const s = app.shops.find(x => x.id == id);
+            document.getElementById('edit-shop-id').value = s.id;
+            document.getElementById('s-name').value = s.name;
+            document.getElementById('s-gst').value = s.gst;
+            document.getElementById('s-mob').value = s.mob;
+            document.getElementById('s-addr').value = s.addr;
+            document.getElementById('s-acc').value = s.acc || "";
+            document.getElementById('s-ifsc').value = s.ifsc || "";
+        }
+
+        function switchShop() { app.activeShopId = document.getElementById('shop-selector').value; saveData(); updateBillPreview(); }
         function renderShopSelect() { document.getElementById('shop-selector').innerHTML = app.shops.map(s => `<option value="${s.id}" ${s.id == app.activeShopId ? 'selected' : ''}>${s.name}</option>`).join(''); }
 
         // --- BILLING LOGIC ---
         function updateBillPreview() {
             const shop = app.shops.find(s => s.id == app.activeShopId);
+            const mode = document.getElementById('gst-mode').value;
+            
             document.getElementById('p-shop-name').innerText = shop.name;
             document.getElementById('p-shop-gst').innerText = "GSTIN: " + (shop.gst || "--");
             document.getElementById('p-shop-mob').innerText = "MOB: " + (shop.mob || "--");
             document.getElementById('p-shop-addr').innerText = shop.addr;
-            document.getElementById('p-shop-bank').innerText = shop.acc ? `Acc No: ${shop.acc} | IFSC: ${shop.ifsc}` : "";
+            document.getElementById('p-shop-bank').innerText = shop.acc ? `A/C No: ${shop.acc} | IFSC: ${shop.ifsc}` : "";
             document.getElementById('p-inv-no').innerText = shop.nextInv;
             document.getElementById('p-date').innerText = document.getElementById('bill-date-input').value.split('-').reverse().join('/');
             
             if(shop.logo) { document.getElementById('p-logo').src = shop.logo; document.getElementById('p-logo').classList.remove('hidden'); }
-            
+            else { document.getElementById('p-logo').classList.add('hidden'); }
+
             document.getElementById('p-cust-name').innerText = document.getElementById('cust-name').value || "________________";
             document.getElementById('p-cust-mob').innerText = document.getElementById('cust-mob').value || "________________";
             document.getElementById('p-cust-addr').innerText = document.getElementById('cust-addr').value || "________________";
-            document.getElementById('p-bill-note').innerText = document.getElementById('bill-note-input').value || "Thank you for shopping with us!";
+            document.getElementById('p-bill-note').innerText = document.getElementById('bill-note-input').value || "E.&O.E. Goods once sold will not be taken back.";
 
             const tbody = document.getElementById('bill-body');
+            const taxTbody = document.getElementById('tax-breakup-body');
             tbody.innerHTML = '';
-            let totalTaxable = 0, totalGst = 0;
+            let sub = 0, gst = 0;
 
             currentItems.forEach((itm, i) => {
-                totalTaxable += (itm.qty * itm.rate);
-                totalGst += itm.gstAmt;
+                sub += (itm.qty * itm.rate);
+                gst += itm.gstAmt;
                 tbody.innerHTML += `<tr><td align="center">${i+1}</td><td class="font-bold uppercase">${itm.name}</td><td align="center">${itm.hsn}</td><td align="center">${itm.unit}</td><td align="center">${itm.qty}</td><td align="right">${itm.rate.toFixed(2)}</td><td align="center">${itm.gstPer}%</td><td align="right"><b>${itm.total.toFixed(2)}</b></td></tr>`;
             });
-            for(let i=currentItems.length; i<18; i++) tbody.innerHTML += `<tr class="h-6"><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>`;
+            for(let i=currentItems.length; i<15; i++) tbody.innerHTML += `<tr class="h-6"><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>`;
 
-            const grand = totalTaxable + totalGst;
-            document.getElementById('p-taxable-val').innerText = totalTaxable.toFixed(2);
-            document.getElementById('p-tax-val').innerText = totalGst.toFixed(2);
-            document.getElementById('p-grand').innerText = grand.toFixed(2);
-            document.getElementById('p-words').innerText = numberToWords(Math.floor(grand)) + " Rupees Only";
-            document.getElementById('p-footer-shop').innerText = "For " + shop.name;
+            if(mode === 'INTER') taxTbody.innerHTML = `<tr><td>IGST Total:</td><td class="text-right font-bold">${gst.toFixed(2)}</td></tr>`;
+            else taxTbody.innerHTML = `<tr><td>CGST:</td><td class="text-right font-bold">${(gst/2).toFixed(2)}</td></tr><tr><td>SGST:</td><td class="text-right font-bold">${(gst/2).toFixed(2)}</td></tr>`;
+
+            const total = sub + gst;
+            document.getElementById('p-taxable-val').innerText = sub.toFixed(2);
+            document.getElementById('p-tax-val').innerText = gst.toFixed(2);
+            document.getElementById('p-grand').innerText = "₹ " + total.toFixed(2);
+            document.getElementById('p-words').innerText = numberToWords(Math.floor(total)) + " Rupees Only";
         }
 
         function addItem() {
             const name = document.getElementById('item-name').value.toUpperCase();
             const qty = parseFloat(document.getElementById('item-qty').value);
             const rate = parseFloat(document.getElementById('item-rate').value);
-            if(!name || isNaN(qty) || isNaN(rate)) return alert("Fill Product, Qty & Rate");
             const gstPer = parseFloat(document.getElementById('item-gst').value);
+            if(!name || isNaN(qty) || isNaN(rate)) return;
+            
             const taxable = qty * rate;
             const gstAmt = (taxable * gstPer) / 100;
             currentItems.push({ name, hsn: document.getElementById('item-hsn').value || '-', unit: document.getElementById('item-unit').value || 'PCS', qty, rate, gstPer, gstAmt, total: taxable + gstAmt });
+            
             document.getElementById('item-name').value = ''; document.getElementById('item-qty').value = ''; document.getElementById('item-rate').value = '';
             updateBillPreview();
         }
 
         function finalSaveBill() {
-            if(!currentItems.length) return alert("Bill is empty!");
+            if(currentItems.length === 0) return alert("No items to save!");
             const shop = app.shops.find(s => s.id == app.activeShopId);
-            app.history.unshift({
-                inv: shop.nextInv, cust: document.getElementById('cust-name').value || "Cash",
-                mob: document.getElementById('cust-mob').value || "", total: document.getElementById('p-grand').innerText,
-                date: document.getElementById('p-date').innerText, shopId: shop.id
+            app.history.unshift({ 
+                invNo: shop.nextInv, cust: document.getElementById('cust-name').value || "Cash", 
+                mob: document.getElementById('cust-mob').value || "N/A", total: document.getElementById('p-grand').innerText, 
+                date: document.getElementById('p-date').innerText, shopId: shop.id 
             });
             shop.nextInv++;
             saveData();
-            alert("Bill Saved!"); location.reload();
+            alert("Invoice Saved!");
+            location.reload();
         }
 
         function renderHistory() {
-            const q = document.getElementById('hist-search').value.toLowerCase();
-            const filtered = app.history.filter(h => h.shopId == app.activeShopId && (h.cust.toLowerCase().includes(q) || h.inv.toString().includes(q) || h.mob.includes(q)));
+            const q = document.getElementById('history-search').value.toLowerCase();
+            const shop = app.shops.find(s => s.id == app.activeShopId);
+            const filtered = app.history.filter(h => h.shopId == shop.id && (h.invNo.toString().includes(q) || h.cust.toLowerCase().includes(q) || h.mob.includes(q)));
+            
             document.getElementById('history-items').innerHTML = filtered.map(h => `
                 <div class="p-3 bg-slate-800 rounded-lg flex justify-between items-center text-xs border border-slate-700">
-                    <div><b>#${h.inv}</b> | ${h.cust} | ${h.date}</div>
-                    <div class="text-blue-400 font-bold">₹${h.total}</div>
+                    <div><b>#${h.invNo}</b> | ${h.cust}<br><span class="opacity-50">${h.date} | ${h.mob}</span></div>
+                    <div class="text-blue-400 font-black">${h.total}</div>
                 </div>
             `).join('');
         }
 
+        // --- MASTER DATA ---
         function saveToMaster() {
             const n = document.getElementById('m-name').value.toUpperCase();
             if(!n) return;
             app.master.push({ name: n, hsn: document.getElementById('m-hsn').value, unit: document.getElementById('m-unit').value.toUpperCase() });
             saveData(); location.reload();
         }
-
         function renderMaster() {
             document.getElementById('master-list-items').innerHTML = app.master.map((m, i) => `<div class="p-2 bg-slate-800 flex justify-between rounded text-[10px] border border-slate-700"><span>${m.name}</span><button onclick="app.master.splice(${i},1);saveData();renderMaster();" class="text-red-500">DEL</button></div>`).join('');
         }
-
         function handleSmartSearch() {
             const q = document.getElementById('item-name').value.toLowerCase();
             const box = document.getElementById('suggest-box');
@@ -378,7 +393,6 @@
                 box.style.display='block';
             } else box.style.display='none';
         }
-
         function pickMaster(n, h, u) {
             document.getElementById('item-name').value = n;
             document.getElementById('item-hsn').value = h;
@@ -386,10 +400,8 @@
             document.getElementById('suggest-box').style.display='none';
         }
 
-        function generatePDF() {
-            const el = document.getElementById('invoice-a4');
-            html2pdf().from(el).set({ margin: 0, filename: `Inv_${Date.now()}.pdf`, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } }).save();
-        }
+        // --- UTILS ---
+        function generatePDF() { const el = document.getElementById('invoice-a4'); html2pdf().from(el).set({ margin: 0, filename: 'Invoice.pdf', html2canvas: { scale: 3 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } }).save(); }
 
         function numberToWords(num) {
             const a = ['','One ','Two ','Three ','Four ','Five ','Six ','Seven ','Eight ','Nine ','Ten ','Eleven ','Twelve ','Thirteen ','Fourteen ','Fifteen ','Sixteen ','Seventeen ','Eighteen ','Nineteen '];
